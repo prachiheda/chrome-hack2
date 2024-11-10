@@ -1,0 +1,19 @@
+
+{
+    "manifest_version": 3,
+    "name": "Fast Fit",
+    "version": "1.0.0",
+    "description": "Enhance your job applications with quick insights into company missions, values, and recent news.",
+    "action": {
+      "default_popup": "index.html"
+    },
+    "icons":{
+        "16": "src/assets/checked16.png", 
+        "32": "src/assets/checked32.png",
+        "128": "src/assets/checked128.png"
+    }, 
+    "background": {
+      "service_worker": "src/background.js"
+    }, 
+    "permissions": []
+  }
