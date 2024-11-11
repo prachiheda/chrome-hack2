@@ -5,15 +5,20 @@
     "version": "1.0.0",
     "description": "Enhance your job applications with quick insights into company missions, values, and recent news.",
     "action": {
-      "default_popup": "index.html"
+    "default_popup": "index.html"
+  },
+    "background": {
+      "service_worker": "src/background.ts"
     },
     "icons":{
         "16": "src/assets/checked16.png", 
         "32": "src/assets/checked32.png",
         "128": "src/assets/checked128.png"
     }, 
-    "background": {
-      "service_worker": "src/background.js"
-    }, 
-    "permissions": []
+
+    "permissions": ["storage", "tabs", "activeTab", "scripting"],
+    "host_permissions": ["<all_urls>"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
   }

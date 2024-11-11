@@ -7,8 +7,8 @@ export default defineConfig({
   plugins: [
     react(),
     crx({ manifest }),
-  ], 
-  server: {
-    port: 3000, // or any available port you prefer
+  ],
+  define: {
+    'process.env': {},
   },
 })
