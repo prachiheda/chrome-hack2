@@ -5,24 +5,22 @@
   "version": "1.0.0",
   "description": "Enhance your job applications with quick insights into company missions, values, and recent news.",
   "action": {
-    "default_popup": "index.html"
+    "default_popup": "index.html",
+    "default_title": "Click to open panel"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "src/background.ts"
+  },
+  "side_panel": {
+    "default_path": "public/sidepanel.html" 
   },
   "icons": {
     "16": "src/assets/checked16.png",
     "32": "src/assets/checked32.png",
     "128": "src/assets/checked128.png"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["contentScript.js"]
-    }
-  ],
 
-  "permissions": ["storage", "tabs", "activeTab", "scripting"],
+  "permissions": ["storage", "sidePanel", "tabs", "activeTab", "scripting"],
   "host_permissions": ["<all_urls>"],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
