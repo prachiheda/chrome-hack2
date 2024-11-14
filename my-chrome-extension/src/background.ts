@@ -1,7 +1,26 @@
 /// <reference types="chrome"/>
 import { GoogleGenerativeAI } from "@google/generative-ai";
-// import { searchCompanyMission } from './utils/googleClient';
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+async function fetchMissionContent(companyName: string): Promise<string | null> {
+  try {
+    const response = await fetch('http://localhost:3000/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `${companyName} mission and values` }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch mission content: ${response.statusText}`);
+    }
+
+    const results = await response.json();
+    return results[0]?.link || 'No relevant results found';
+  } catch (error) {
+    console.error('Error fetching mission content from backend:', error);
+    return null;
+  }
+}
 
 // Function to check if the URL is a company page and to extract the company name
 async function analyzeUrl(url: string) {
@@ -23,7 +42,7 @@ async function analyzeUrl(url: string) {
     const isCompanyPage = responseText && responseText.trim().toLowerCase() === 'yes';
 
     let companyName = null;
-    // let missionLink = null;
+    let missionLink = null;
 
     if (isCompanyPage) {
       // Step 2: Extract the company name if it is a company page
@@ -33,9 +52,9 @@ async function analyzeUrl(url: string) {
       const extractResponseParts = extractResult.response?.candidates?.[0]?.content?.parts;
       companyName = extractResponseParts && extractResponseParts.length > 0 ? extractResponseParts[0].text : null;
       // Step 3: Fetch mission content
-      // if (companyName) {
-      //   missionLink = await searchCompanyMission(`${companyName} mission vision value`);
-      // }
+      if (companyName) {
+        missionLink = await fetchMissionContent(`${companyName} mission vision value`);
+      }
     }
 
     // Save results to local storage
@@ -43,7 +62,7 @@ async function analyzeUrl(url: string) {
       currentTabUrl: url,
       isCompanyPage: isCompanyPage ? "Yes" : "No",
       companyName: companyName || 'Company name not found',
-      // missionLink: missionLink || 'Mission link not found',
+       missionLink: missionLink || 'Mission link not found',
     });
 
   } catch (error) {
@@ -86,31 +105,33 @@ chrome.runtime.onInstalled.addListener(() => {
   .catch((error) => console.error(error));
 })
 
-// chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-//   if (message.action === 'fetchMissionContent') {
-//       const { companyName } = message;
 
-//       try {
-//           // Check if the mission content is already stored in local storage
-//           chrome.storage.local.get(['missionLink', 'companyName'], async (data) => {
-//               if (data.companyName === companyName && data.missionLink) {
-//                   // Return cached mission link
-//                   sendResponse({ link: data.missionLink });
-//               } else {
-//                   // Fetch mission content if not cached
-//                   const firstResult = await searchCompanyMission(`${companyName} mission vision value`);
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+  if (message.action === 'fetchMissionContent') {
+    const { companyName } = message;
 
-//                   // Save the result to local storage
-//                   chrome.storage.local.set({ missionLink: firstResult });
+    try {
+      // Check if the mission content is already stored in local storage
+      chrome.storage.local.get(['missionLink', 'companyName'], async (data) => {
+        if (data.companyName === companyName && data.missionLink) {
+          // Return cached mission link
+          sendResponse({ link: data.missionLink });
+        } else {
+          // Fetch mission content if not cached
+          const missionLink = await fetchMissionContent(companyName);
 
-//                   // Send response back to the popup
-//                   sendResponse({ link: firstResult });
-//               }
-//           });
-//       } catch (error) {
-//           console.error(error);
-//           sendResponse({ error: 'Failed to fetch mission content.' });
-//       }
-//   }
-//   return true; // Keeps the message channel open for async response
-// });
+          // Save the result to local storage
+          chrome.storage.local.set({ missionLink });
+
+          // Send response back to the popup
+          sendResponse({ link: missionLink });
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching mission content:', error);
+      sendResponse({ error: 'Failed to fetch mission content.' });
+    }
+  }
+  return true; // Keeps the message channel open for async response
+});
+
